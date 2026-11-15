@@ -1,4 +1,80 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>손해평가사 계산 학습실</title><style>
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>손해평가사 계산 학습실</title>
+<style>
+:root{font-family:system-ui,"Malgun Gothic",sans-serif;color:#173a2b;background:#eef4ef}
+*{box-sizing:border-box}body{max-width:900px;margin:24px auto;padding:14px}main{background:white;border-radius:20px;padding:clamp(18px,4vw,36px);box-shadow:0 6px 24px #183b2520}
+h1{margin-top:0}button,select,input{font:inherit;border-radius:9px;padding:11px;border:1px solid #b6c9bb}
+button{background:#176343;color:#fff;border:0;cursor:pointer;margin:5px 5px 5px 0}button:disabled{opacity:.45;cursor:default}
+select,input{width:100%}label{display:block;font-weight:650;margin:14px 0 6px}.panel{padding:17px;border-radius:12px;background:#edf5ef;line-height:1.8}
+.warn{background:#fff4d8;padding:14px;border-radius:12px;line-height:1.65}.muted{color:#5b7063}.tabs{margin:20px 0}.tabs button{background:#dceae0;color:#1b5235}.tabs button.active{background:#176343;color:white}
+.hide{display:none}.step{font-size:1.2rem;font-weight:750}.answer{margin-top:16px}.feedback{min-height:46px;font-weight:650;line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 18px}.field{min-width:0}
+.result p{border-bottom:1px solid #c9dbcd;padding-bottom:8px}small{line-height:1.7}
+</style></head><body><main>
+<h1>🌱 손해평가사 계산 학습실</h1>
+<p class="muted">🍎 사과 · 🌽 옥수수 | 단계별 연습 · 자동 채점 · 수치 변경 계산기</p>
+<div class="warn"><strong>중요: 시험 대비용 기초 연습 프로그램</strong><br>
+이 버전은 작물별 계산 구조를 분리한 <strong>기초 산술 연습</strong>입니다. 2026년 교재의 모든 조사·산정 절차를 구현하거나 공식 기출 정답과 대조한 버전이 아닙니다. 실제 시험의 보장방식, 미보상감수량, 병충해 처리, 피해수확량 산정, 자기부담 방식은 해당 교재·약관과 대조해야 합니다.</div>
+<label for="crop">작물 선택</label>
+<select id="crop"><option value="apple">🍎 사과 — 수확감소 계산 구조 연습</option><option value="corn">🌽 옥수수 — 피해수확량·손해액 계산 구조 연습</option></select>
+<div class="tabs"><button id="practice" class="active" type="button">문제 풀기</button><button id="calc" type="button">계산기</button></div>
+<div id="intro" class="panel"></div>
+<section id="quiz"><h2 id="step"></h2><p id="question"></p>
+<label class="answer" for="answer">답 입력 (숫자만)</label><input id="answer" type="number" step="any" inputmode="decimal">
+<div><button id="check">채점하기</button><button id="hint">힌트</button><button id="next" disabled>다음 단계</button><button id="reset">다시 풀기</button></div>
+<div id="feedback" class="feedback" aria-live="polite"></div><p id="progress" class="muted"></p></section>
+<section id="calculator" class="hide"><h2>수치 변경 계산기</h2><div id="fields" class="grid"></div>
+<button id="compute">계산하기</button><div id="result" class="panel result" aria-live="polite"></div></section>
+<hr><small class="muted">학습 자료: 제공된 손해평가사 이론서의 작물 분류와 계산 학습 맥락을 참고했습니다. 사과의 적과전종합위험 세부 절차 및 옥수수 표본조사·피해수확량 산정은 미구현입니다. 숫자와 문제는 임의의 연습용 예시입니다.</small>
+</main><script>
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString('ko-KR',{maximumFractionDigits:6});
+const configs={
+apple:{
+desc:'🍎 사과: 기초 연습용 가정식 — 감수량 = 평년수확량 − 실제수확량 − 미보상감수량. 피해율 = 감수량 ÷ 평년수확량. 연습 보험금 = 보험가입금액 × max(0, 피해율 − 자기부담비율). ※ 실제 사과 상품의 적과 전·후 손해평가 및 보험금 산식과 동일하다는 의미가 아닙니다.',
+fields:[['normal','평년수확량 (kg)',10000],['harvest','실제수확량 (kg)',6500],['uncovered','미보상감수량 (kg)',300],['insured','보험가입금액 (원)',10000000],['deduct','자기부담비율 (%)',20]],
+solve:v=>{const loss=Math.max(0,v.normal-v.harvest-v.uncovered),rate=loss/v.normal,eligible=Math.max(0,rate-v.deduct/100),pay=v.insured*eligible;
+return [
+{q:'연습용 보상 대상 감수량은 몇 kg인가요?',a:loss,ex:`max(0, ${fmt(v.normal)} − ${fmt(v.harvest)} − ${fmt(v.uncovered)}) = ${fmt(loss)} kg`,hint:'평년수확량 − 실제수확량 − 미보상감수량. 음수라면 0.'},
+{q:'피해율은 몇 %인가요? (백분율 숫자로 입력)',a:rate*100,ex:`${fmt(loss)} ÷ ${fmt(v.normal)} × 100 = ${fmt(rate*100)}%`,hint:'감수량 ÷ 평년수확량 × 100'},
+{q:'자기부담비율 차감 후 비율은 몇 %인가요?',a:eligible*100,ex:`max(0, ${fmt(rate*100)} − ${fmt(v.deduct)}) = ${fmt(eligible*100)}%`,hint:'피해율(%)에서 자기부담비율(%)을 차감'},
+{q:'연습용 최종 보험금은 몇 원인가요?',a:pay,ex:`${fmt(v.insured)} × ${fmt(eligible)} = ${fmt(pay)}원`,hint:'보험가입금액 × 자기부담 차감 후 비율'}
+];}},
+corn:{
+desc:'🌽 옥수수: 기초 연습용 가정식 — 손해액 = 이미 산정된 피해수확량 × 가입가격. 자기부담금 = 보험가입금액 × 자기부담비율. 연습 보험금 = max(0, min(보험가입금액, 손해액) − 자기부담금). ※ 실제 시험에서는 피해수확량 자체를 조사·산정하는 과정과 적용 조건을 별도로 확인해야 합니다.',
+fields:[['damaged','산정된 피해수확량 (kg)',600],['price','가입가격 (원/kg)',2000],['insured','보험가입금액 (원)',2000000],['deduct','자기부담비율 (%)',20]],
+solve:v=>{const loss=v.damaged*v.price,own=v.insured*v.deduct/100,cap=Math.min(v.insured,loss),pay=Math.max(0,cap-own);
+return [
+{q:'손해액은 몇 원인가요?',a:loss,ex:`${fmt(v.damaged)} × ${fmt(v.price)} = ${fmt(loss)}원`,hint:'피해수확량 × 가입가격'},
+{q:'자기부담금은 몇 원인가요?',a:own,ex:`${fmt(v.insured)} × ${fmt(v.deduct/100)} = ${fmt(own)}원`,hint:'보험가입금액 × 자기부담비율'},
+{q:'보험가입금액 한도를 적용한 손해액은 몇 원인가요?',a:cap,ex:`min(${fmt(v.insured)}, ${fmt(loss)}) = ${fmt(cap)}원`,hint:'보험가입금액과 손해액 중 작은 값'},
+{q:'연습용 최종 보험금은 몇 원인가요?',a:pay,ex:`max(0, ${fmt(cap)} − ${fmt(own)}) = ${fmt(pay)}원`,hint:'한도 적용 손해액 − 자기부담금'}
+];}}
+};
+let crop='apple',i=0,wrong=0,steps=[],values={};
+function defaults(){values=Object.fromEntries(configs[crop].fields.map(([k,,v])=>[k,v]));}
+function build(){steps=configs[crop].solve(values);i=0;wrong=0;$('intro').textContent=configs[crop].desc;
+$('fields').replaceChildren(...configs[crop].fields.map(([key,label])=>{const wrap=document.createElement('div');wrap.className='field';const lab=document.createElement('label');lab.htmlFor='f_'+key;lab.textContent=label;const input=document.createElement('input');input.id='f_'+key;input.type='number';input.step='any';input.min='0';input.value=values[key];wrap.append(lab,input);return wrap;}));
+$('result').textContent='값을 변경한 뒤 계산하기를 누르세요.';render();}
+function render(){if(i>=steps.length){$('step').textContent='🎉 학습 완료';$('question').textContent=`연습용 최종 보험금: ${fmt(steps.at(-1).a)}원 · 오답 시도 ${wrong}회`;$('answer').classList.add('hide');$('check').disabled=true;$('hint').disabled=true;$('next').disabled=true;$('feedback').textContent='다시 풀기를 눌러 반복 학습하세요.';$('progress').textContent='';return;}
+$('answer').classList.remove('hide');$('step').textContent=`${i+1} / ${steps.length} 단계`;$('question').textContent=steps[i].q;$('answer').value='';$('check').disabled=false;$('hint').disabled=false;$('next').disabled=true;$('feedback').textContent='';$('progress').textContent=`오답 시도: ${wrong}회`;}
+function switchMode(m){$('quiz').classList.toggle('hide',m!=='practice');$('calculator').classList.toggle('hide',m!=='calc');$('practice').classList.toggle('active',m==='practice');$('calc').classList.toggle('active',m==='calc');}
+$('crop').addEventListener('change',e=>{crop=e.target.value;defaults();build();});
+$('practice').onclick=()=>switchMode('practice');$('calc').onclick=()=>switchMode('calc');
+$('check').onclick=()=>{const raw=$('answer').value;if(raw.trim()===''){$('feedback').textContent='답을 입력해 주세요.';return;}const actual=Number(raw),s=steps[i];if(!Number.isFinite(actual)){$('feedback').textContent='유효한 숫자를 입력해 주세요.';return;}
+const ok=Math.abs(actual-s.a)<=Math.max(0.000001,Math.abs(s.a)*0.0000001);
+if(ok){$('feedback').textContent='✅ 정답! '+s.ex;$('check').disabled=true;$('next').disabled=false;}else{wrong++;$('feedback').textContent='❌ 다시 계산해 보세요. 힌트를 확인할 수 있습니다.';$('progress').textContent=`오답 시도: ${wrong}회`;}};
+$('hint').onclick=()=>{$('feedback').textContent='💡 '+steps[i].hint;};
+$('next').onclick=()=>{i++;render();};$('reset').onclick=()=>{i=0;wrong=0;render();};
+$('answer').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!$('check').disabled)$('check').click();else if(!$('next').disabled)$('next').click();}});
+$('compute').onclick=()=>{const v={};for(const [key,label] of configs[crop].fields){const raw=$('f_'+key).value;const n=Number(raw);if(raw.trim()===''||!Number.isFinite(n)||n<0){$('result').textContent=label+': 0 이상의 숫자를 입력해 주세요.';return;}v[key]=n;}
+if(v.deduct>100||(crop==='apple'&&(v.normal<=0||v.harvest>v.normal))){$('result').textContent='자기부담비율은 0~100%여야 하며, 사과 평년수확량은 0보다 크고 실제수확량은 평년수확량 이하여야 합니다.';return;}
+values=v;steps=configs[crop].solve(v);$('result').replaceChildren(...steps.map((s,j)=>{const p=document.createElement('p');const strong=document.createElement('strong');strong.textContent=`${j+1}단계: `;p.append(strong,document.createTextNode(s.ex));return p;}));
+i=0;wrong=0;render();};
+defaults();build();
+</script></body></html><!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>손해평가사 계산 학습실</title><style>
 :root{font-family:system-ui,"Malgun Gothic",sans-serif;color:#183127;background:#f1f5f1}body{max-width:850px;margin:24px auto;padding:14px}main{background:white;padding:clamp(18px,4vw,38px);border-radius:18px;box-shadow:0 4px 22px #0001}h1{margin-top:0}button,select,input{font:inherit;padding:11px;border-radius:9px;border:1px solid #bacac0}button{background:#176343;color:white;border:0;cursor:pointer;margin:5px}button:disabled{opacity:.4}input{width:95%;box-sizing:border-box}label{display:block;margin:12px 0 5px;font-weight:600}.panel{background:#edf5ef;padding:16px;border-radius:12px;line-height:1.8}.warn{background:#fff3d9;padding:13px;border-radius:10px}.muted{color:#586d61}#feedback{min-height:38px;font-weight:600}.tabs button{background:#dbe9df;color:#17462e}.tabs button.active{background:#176343;color:white}#formula{white-space:pre-line}.hide{display:none}small{line-height:1.6}</style></head><body><main>
 <h1>🌱 손해평가사 계산 학습실</h1><p class="muted">사과 · 옥수수 | 단계별 계산 · 자동 채점 · 계산기</p>
 <p class="warn"><strong>학습용 예제입니다.</strong> 아래 수치는 기출문제 원문이 아닌 연습용 수치입니다. 실제 보험금 지급 판단에는 가입 상품·보장 유형·약관·해당 연도 손해평가요령을 확인해야 합니다.</p>
