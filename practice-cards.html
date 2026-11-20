@@ -561,6 +561,7 @@ for (const button of document.querySelectorAll("[data-case]")) {
       return field;
     }));
     dialog.showModal();
+    requestAnimationFrame(() => dialog.scrollIntoView({ block: "center" }));
   });
 }
 dialog.querySelector(".close").onclick = () => dialog.close();
