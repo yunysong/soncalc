@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="손해평가 코딩쟁이의 손해평가사 2차 계산 연습 글 12편을 모았습니다.">
+<title>손해평가 계산 연습 · 손해평가 코딩쟁이</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #173327;
+  --muted: #4b5d51;
+  --paper: #f2f5ef;
+  --line: #dce4d7;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 1rem/1.65 system-ui, "Malgun Gothic", sans-serif;
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+.wrap { width: min(69rem, calc(100% - 2rem)); margin-inline: auto; }
+.hero { background: radial-gradient(ellipse at 88% 12%, #35664a, transparent 65%), #173b2c; color: #f7f5e7; padding: clamp(2.75rem, 7vw, 5.25rem) 0; }
+.brand { margin: 0; color: #d4e6c9; font-weight: 700; }
+h1 { font-size: clamp(2.15rem, 6vw, 4.25rem); line-height: 1.14; letter-spacing: -.055em; margin: .5rem 0 .8rem; }
+.hero p:last-child { margin: 0; color: #eff3e9; }
+main { padding-block: 2rem 2.75rem; }
+.cards {
+  list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cards li { display: flex; }
+.card {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%;
+  border: 1px solid var(--line); box-shadow: 0 5px 15px #1733270a;
+  text-decoration: none; color: inherit; border-radius: 1rem;
+  background: #fff; padding: clamp(1rem, 3vw, 1.6rem);
+}
+.card:hover { background: #edf4e7; border-color: #608465; }
+.calculator { background: #e3efdd; border: 1px solid #b9cfb5; border-left: .35rem solid #477652; border-radius: 1rem; padding: clamp(1.2rem, 4vw, 2rem); margin-bottom: 1.8rem; }
+.section-title { margin: 0 0 1rem; font-size: 1.35rem; }
+.calculator h2 { margin-top: 0; }
+.calculator p { color: var(--muted); margin: 0 0 .8rem; }
+.calculator-links { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; }
+.calculator-links a { color: var(--ink); font-weight: 700; text-underline-offset: .2em; }
+.calculator-links a:first-child { padding: .55rem .9rem; color: white; background: #173b2c; border-radius: .5rem; text-decoration: none; }
+.calculator-links a:first-child:hover { background: #28553d; }
+a:focus-visible { outline: .2rem solid #9d5124; outline-offset: .2rem; }
+.label { color: #315b3d; background: #eaf2e6; border-radius: .4rem; padding: .17rem .5rem; font-size: .91rem; font-weight: 750; }
+h2 { font-size: clamp(1.18rem, 2.5vw, 1.5rem); line-height: 1.4; letter-spacing: -.035em; margin: .4rem 0 .6rem; }
+.card p { color: var(--muted); margin: 0 0 1.1rem; }
+.action { margin-top: auto; text-decoration: underline; text-underline-offset: .22em; font-weight: 700; }
+footer { padding: 1rem 0 1.75rem; border-top: 1px solid var(--line); }
+footer a { color: var(--ink); }
+@media (max-width: 770px) {
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 500px) { .cards { grid-template-columns: 1fr; } }
+.card-actions { margin-top:auto; display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; }
+.card-actions a, .close { color:var(--ink); }
+button { font:inherit; font-weight:700; padding:.45rem .7rem; border:1px solid #25513a; color:white; background:#25513a; border-radius:.5rem; cursor:pointer; }
+button:focus-visible { outline:.2rem solid #9d5124; outline-offset:.2rem; }
+dialog { color:var(--ink); border:1px solid var(--line); border-radius:1rem; width:min(42rem, calc(100% - 2rem)); padding:1.25rem; }
+dialog::backdrop { background:#17332799; }
+.close { float:right; background:white; }
+.fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap:.7rem; margin:1rem 0; }
+.fields label { display:grid; gap:.2rem; align-content:start; }
+.field-name { display:block; font-weight:750; }
+.field-unit { display:block; font-size:.88rem; color:#465b4f; }
+.fields input { margin-top:.2rem; }
+.fields input { display:block; width:100%; font:inherit; padding:.4rem; border:1px solid #9aac9e; border-radius:.35rem; }
+#results { padding-inline-start:1.3rem; }
+dialog { background:#fff; color:#142d21; max-height:calc(100dvh - 2rem); overflow:auto; }
+.fields { gap:.85rem; }
+.fields label { min-width:0; padding:.7rem .75rem; background:#eff5ee; border:1px solid #b3c4b1; border-radius:.6rem; }
+.fields .field-name { color:#142d21; font-size:1.12rem; font-weight:800; line-height:1.4; }
+.fields .field-unit { color:#293d31; font-size:1rem; font-weight:650; line-height:1.4; }
+.fields input { background:#fff; color:#142d21; border:2px solid #54745d; min-height:2.8rem; font-size:1.12rem; }
+@media (max-width: 500px) { .fields { grid-template-columns:1fr; } }
+/* Alternate the color for each group of three articles. */
+.cards > .card {
+  --row-accent: #397354;
+  --row-ink: #214831;
+  --row-soft: #d9ebdd;
+  --row-paper: #fff;
+  --row-hover: #e7f3ea;
+  border-top: .28rem solid var(--row-accent);
+  background: var(--row-paper);
+}
+.cards > .card:nth-child(6n + 4),
+.cards > .card:nth-child(6n + 5),
+.cards > .card:nth-child(6n + 6) {
+  --row-paper: #eaf3e9;
+  --row-hover: #deeedf;
+}
+.cards > .card:hover { background: var(--row-hover); border-color: var(--row-accent); }
+.cards .label { background: var(--row-soft); color: var(--row-ink); }
+.cards .card-actions a { color: var(--row-ink); }
+.cards .card-actions button { background: var(--row-ink); border-color: var(--row-ink); }
+#results .final-step {
+  background: #e4f2e6;
+  color: #173b2c;
+  border: 1px solid #9cbda0;
+  border-left: .3rem solid #397354;
+  border-radius: .5rem;
+  margin-top: .75rem;
+  padding: .65rem .8rem;
+  font-weight: 750;
+}
+.final-step strong { display: block; margin-bottom: .2rem; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="brand">손해평가 코딩쟁이</p>
+    <h1>손해평가 계산 연습</h1>
+    <p>손해평가사 2차 시험을 준비하며 정리한 계산 사례 12편입니다.</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="calculator" aria-labelledby="calculator-title">
+    <h2 id="calculator-title">손해평가사 2차 계산기</h2>
+    <p>작물과 보장방식을 골라 단계별로 문제를 풀거나, 숫자를 바꿔 계산 결과를 확인할 수 있습니다.</p>
+    <div class="calculator-links">
+      <a href="https://yunysong.github.io/soncalc/">계산기 열기</a>
+      <a href="https://blog.naver.com/yunbiya/224477706801">201 · 계산기 소개</a>
+    </div>
+  </section>
+  <h2 class="section-title" id="practice-title">계산 연습 12편</h2>
+  <ul class="cards" aria-labelledby="practice-title">
+    <li class="card">
+      <span class="label">213 · 평년수확량</span>
+      <h2>평년수확량은 어떻게 정할까?</h2>
+      <p>과거 5개년 자료와 표준수확량으로 평년수확량을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479639681">원문 보기</a><button type="button" data-case="std_yield">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">212 · 인삼</span>
+      <h2>인삼 해가림시설이 파손됐다면?</h2>
+      <p>해가림시설의 감가상각을 반영해 보험금을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479639215">원문 보기</a><button type="button" data-case="ginseng_fac">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">211 · 농업수입감소보장</span>
+      <h2>수확량이 줄어 농업수입이 감소했다면?</h2>
+      <p>수확량 감소로 농업수입이 줄어든 사례의 보험금을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479638798">원문 보기</a><button type="button" data-case="revenue">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">210 · 고추</span>
+      <h2>고추 재배 중 피해가 발생했다면?</h2>
+      <p>고추 재배 중 피해 사례로 생산비보장보험금 계산을 연습합니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479638328">원문 보기</a><button type="button" data-case="chili">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">209 · 옥수수</span>
+      <h2>옥수수 2,500주가 피해를 입었다면?</h2>
+      <p>옥수수 피해 사례에서 보험금이 얼마인지 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479637855">원문 보기</a><button type="button" data-case="corn">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">208 · 벼</span>
+      <h2>벼가 침수됐다면? 재이앙보험금과 경작불능보험금 계산하기</h2>
+      <p>침수된 벼의 재이앙보험금과 경작불능보험금을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479637402">원문 보기</a><button type="button" data-case="rice">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">207 · 무화과</span>
+      <h2>무화과는 사고 날짜도 중요하다! 수확 전·후 피해율 계산</h2>
+      <p>사고가 수확 전과 후에 발생했을 때 피해율을 각각 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479637002">원문 보기</a><button type="button" data-case="fig">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">206 · 복분자</span>
+      <h2>복분자 수정불량 피해, 결과모지수는 어떻게 계산할까?</h2>
+      <p>수정불량 피해 사례에서 결과모지수를 구하는 계산을 연습합니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479636445">원문 보기</a><button type="button" data-case="bokbunja">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">205 · 감귤</span>
+      <h2>감귤 피해과실, 등급에 따라 보험금이 달라질까?</h2>
+      <p>피해과실 등급을 반영하는 감귤 보험금 계산을 연습합니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479635452">원문 보기</a><button type="button" data-case="citrus_unshu">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">204 · 복숭아</span>
+      <h2>복숭아 수확량이 줄었다면? 피해율부터 보험금까지!</h2>
+      <p>수확량 감소 사례에서 피해율을 구하고 보험금을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479635022">원문 보기</a><button type="button" data-case="peach_grape">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">203 · 낙과 피해</span>
+      <h2>태풍으로 떨어진 과실, 보험금은 어떻게 계산할까?</h2>
+      <p>태풍으로 과실이 떨어진 사례의 보험금을 계산해 봅니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479634507">원문 보기</a><button type="button" data-case="apple_post">계산기 열기</button></div></li>
+    <li class="card">
+      <span class="label">202 · 사과</span>
+      <h2>사과 착과감소보험금, 얼마나 받을 수 있을까?</h2>
+      <p>사과 착과 감소 사례로 보험금 계산을 연습합니다.</p>
+      <div class="card-actions"><a href="https://blog.naver.com/yunbiya/224479633818">원문 보기</a><button type="button" data-case="apple_pre">계산기 열기</button></div></li>
+  </ul>
+</main>
+<footer><div class="wrap"><a href="https://blog.naver.com/yunbiya">손해평가 코딩쟁이 블로그</a></div></footer>
+<dialog id="case-calculator" aria-labelledby="case-title">
+<button class="close" type="button">닫기</button>
+<h2 id="case-title"></h2>
+<p id="case-description"></p>
+<div id="case-form">
+  <div id="case-fields" class="fields"></div>
+  <button id="compute-case" type="button">계산하기</button>
+</div>
+<p>시험 연습용입니다. 절사·반올림은 원문 문제의 조건을 확인하세요.</p>
+<p id="case-error" role="alert"></p>
+<section id="case-output" hidden aria-labelledby="result-title"><h3 id="result-title">계산 결과</h3><ol id="results" aria-live="polite"></ol></section>
+</dialog>
+<script>
+"use strict";
+  const fmt = n => Number(n).toLocaleString('ko-KR', { maximumFractionDigits: 4 });
+  const floor1000 = n => Math.floor(n / 1000) * 1000;
+
+  const configs = {
+    apple_pre: {
+      desc: '🍎 [적과전 종합위험 - 착과감소보험금] 착과감소량 = (평년착과수 − 적과후착과수) × 가입과중. 미보상감수량 = (착과감소량 × 미보상비율) + (미보상주수 × 주당평년착과량). 자기부담감수량 = 기준수확량 × 자기부담비율. 보험금 = (착과감소량 − 미보상감수량 − 자기부담감수량) × 가입가격 × 보장수준(50% 또는 70%).',
+      fields: [
+        ['pyeongCount', '평년착과수 (개)', 75000],
+        ['afterCount', '적과후착과수 (개)', 43900],
+        ['weight', '가입과중 (kg, 예: 300g → 0.3)', 0.3],
+        ['uncompRate', '미보상비율 (%)', 0],
+        ['uncompTreeQty', '미보상주수 감수량 (kg)', 0],
+        ['price', '가입가격 (원/kg)', 2000],
+        ['deduct', '자기부담비율 (%)', 15],
+        ['level', '착과감소 보장수준 (50 또는 70%)', 70]
+      ],
+      solve: v => {
+        const decCount = Math.max(0, v.pyeongCount - v.afterCount);
+        const decKg = decCount * v.weight;
+        const stdKg = (v.afterCount + decCount) * v.weight; // 적과전 사고 유 기준
+        const uncompKg = decKg * (v.uncompRate / 100) + v.uncompTreeQty;
+        const deductKg = stdKg * (v.deduct / 100);
+        const pay = Math.max(0, decKg - uncompKg - deductKg) * v.price * (v.level / 100);
+        return [
+          { q: '1단계: 착과감소량(kg)은 얼마인가요?', a: decKg, ex: `(${fmt(v.pyeongCount)} − ${fmt(v.afterCount)}) × ${v.weight}kg = ${fmt(decKg)} kg`, hint: '(평년착과수 − 적과후착과수) × 가입과중' },
+          { q: '2단계: 미보상감수량(kg)은 얼마인가요?', a: uncompKg, ex: `${fmt(decKg)} × ${v.uncompRate}% + ${fmt(v.uncompTreeQty)} = ${fmt(uncompKg)} kg`, hint: '착과감소량 × 미보상비율 + 미보상주수 감수량' },
+          { q: '3단계: 자기부담감수량(kg)은 얼마인가요?', a: deductKg, ex: `기준수확량 ${fmt(stdKg)}kg × ${v.deduct}% = ${fmt(deductKg)} kg`, hint: '(적과후착과수 + 착과감소과실수) × 과중 × 자기부담비율' },
+          { q: '4단계: 최종 착과감소보험금(원)은 얼마인가요?', a: pay, ex: `max(0, ${fmt(decKg)} − ${fmt(uncompKg)} − ${fmt(deductKg)}) × ${fmt(v.price)}원 × ${v.level}% = ${fmt(pay)} 원`, hint: '(착과감소량 − 미보상감수량 − 자기부담감수량) × 가입가격 × 보장수준' }
+        ];
+      }
+    },
+
+    apple_post: {
+      desc: '🍐 [적과전 종합위험 - 과실손해보험금] 적과종료 이후 누적감수량에서 잔여 자기부담감수량(적과전 착과감소에서 차감하고 남은 분)을 공제한 뒤 가입가격을 곱합니다. (사과·배 태풍/호우 등 낙과피해 시 착과손해 7% 추가가산 반영)',
+      fields: [
+        ['cumLossCount', '적과후 누적 감수과실수 합계 (개)', 13490],
+        ['weight', '가입과중 (kg)', 0.3],
+        ['remDeductKg', '잔여 자기부담감수량 (kg, 기차감 시 0)', 0],
+        ['price', '가입가격 (원/kg)', 2000]
+      ],
+      solve: v => {
+        const cumKg = v.cumLossCount * v.weight;
+        const pay = Math.max(0, cumKg - v.remDeductKg) * v.price;
+        return [
+          { q: '1단계: 적과종료 이후 누적감수량(kg)은 얼마인가요?', a: cumKg, ex: `${fmt(v.cumLossCount)}개 × ${v.weight}kg = ${fmt(cumKg)} kg`, hint: '누적 감수과실수 × 가입과중' },
+          { q: '2단계: 과실손해보험금(원)은 얼마인가요?', a: pay, ex: `max(0, ${fmt(cumKg)} − ${fmt(v.remDeductKg)}) × ${fmt(v.price)}원 = ${fmt(pay)} 원`, hint: '(누적감수량 − 잔여 자기부담감수량) × 가입가격' }
+        ];
+      }
+    },
+
+    peach_grape: {
+      desc: '🍑 [종합위험 수확감소보장 과수 - 복숭아·포도·자두·만감류] 피해율 = (평년수확량 − 수확량 − 미보상감수량 + 병충해감수량) ÷ 평년수확량. 복숭아 세균구멍병은 피해과실 무게의 50% 가산. 추가보장특약 = 보험가입금액 × 피해율 × 10%.',
+      fields: [
+        ['pyeong', '평년수확량 (kg)', 25000],
+        ['harvest', '조사 수확량 (kg)', 19840],
+        ['uncompRate', '미보상비율 (%)', 10],
+        ['pestWeight', '복숭아 세균구멍병 피해과실 무게 (kg, 없으면 0)', 0],
+        ['insured', '보험가입금액 (원)', 70000000],
+        ['deduct', '자기부담비율 (%)', 10]
+      ],
+      solve: v => {
+        const uncompKg = Math.max(0, v.pyeong - v.harvest) * (v.uncompRate / 100);
+        const pestKg = v.pestWeight * 0.5;
+        const rate = Math.max(0, (v.pyeong - v.harvest - uncompKg + pestKg) / v.pyeong);
+        const ratePct = Math.round(rate * 10000) / 100; // 소수점 셋째자리 반올림(%)
+        const pay = v.insured * Math.max(0, ratePct / 100 - v.deduct / 100);
+        const addPay = v.insured * (ratePct / 100) * 0.1;
+        return [
+          { q: '1단계: 미보상감수량(kg)은 얼마인가요?', a: uncompKg, ex: `(${fmt(v.pyeong)} − ${fmt(v.harvest)}) × ${v.uncompRate}% = ${fmt(uncompKg)} kg`, hint: '(평년수확량 − 수확량) × 미보상비율' },
+          { q: '2단계: 피해율(%)은 얼마인가요? (소수점 셋째자리 반올림)', a: ratePct, ex: `(${fmt(v.pyeong)} − ${fmt(v.harvest)} − ${fmt(uncompKg)} + ${fmt(pestKg)}) ÷ ${fmt(v.pyeong)} = ${ratePct}%`, hint: '(평년수확량 − 수확량 − 미보상감수량 + 병충해감수량) ÷ 평년수확량 × 100' },
+          { q: '3단계: 수확감소보험금(원)은 얼마인가요?', a: pay, ex: `${fmt(v.insured)} × max(0, ${ratePct}% − ${v.deduct}%) = ${fmt(pay)} 원`, hint: '보험가입금액 × (피해율 − 자기부담비율)' },
+          { q: '4단계: 수확량감소 추가보장특약 보험금(원)은 얼마인가요?', a: addPay, ex: `${fmt(v.insured)} × ${ratePct}% × 10% = ${fmt(addPay)} 원`, hint: '보험가입금액 × 피해율 × 10%' }
+        ];
+      }
+    },
+
+    citrus_unshu: {
+      desc: '🍊 [종합위험 과실손해보장 - 감귤(온주밀감)] 피해율 = {(등급내 피해과실수 + 등급외 피해과실수 × 50%) ÷ 기준과실수} × (1 − 미보상비율). 과실손해보험금 = 손해액(가입금액 × 피해율) − 자기부담금(가입금액 × 자기부담비율).',
+      fields: [
+        ['inGrade', '등급내 환산 피해과실수 합계 (개)', 240],
+        ['outGrade', '등급외 환산 피해과실수 합계 (개)', 310],
+        ['baseCount', '기준과실수 총합계 (개)', 2000],
+        ['uncompRate', '미보상비율 (%)', 0],
+        ['insured', '보험가입금액 (원)', 25000000],
+        ['deduct', '자기부담비율 (%)', 10]
+      ],
+      solve: v => {
+        const rawRate = (v.inGrade + v.outGrade * 0.5) / v.baseCount;
+        const rate = rawRate * (1 - v.uncompRate / 100);
+        const loss = v.insured * rate;
+        const own = v.insured * (v.deduct / 100);
+        const pay = Math.max(0, loss - own);
+        return [
+          { q: '1단계: 과실손해 피해율(%)은 얼마인가요?', a: rate * 100, ex: `{(${fmt(v.inGrade)} + ${fmt(v.outGrade)} × 0.5) ÷ ${fmt(v.baseCount)}} × (1 − ${v.uncompRate}%) = ${fmt(rate * 100)}%`, hint: '{(등급내 + 등급외×0.5) ÷ 기준과실수} × (1 − 미보상비율) × 100' },
+          { q: '2단계: 손해액(원)은 얼마인가요?', a: loss, ex: `${fmt(v.insured)} × ${fmt(rate * 100)}% = ${fmt(loss)} 원`, hint: '보험가입금액 × 피해율' },
+          { q: '3단계: 과실손해보험금(원)은 얼마인가요?', a: pay, ex: `max(0, ${fmt(loss)} − ${fmt(own)}) = ${fmt(pay)} 원`, hint: '손해액 − 자기부담금(가입금액 × 자기부담비율)' }
+        ];
+      }
+    },
+
+    bokbunja: {
+      desc: '🍇 [수확전 종합위험 - 복분자(5/31 이전 사고)] 살아있는 결과모지수 = 표본구간 합 ÷ (구간수 × 5포기). 수정불량환산계수 = max(피해열매수÷전체열매수 − 0.15, 0). 고사결과모지수 = 평년 − (살아있는 − 수정불량환산) − 미보상고사.',
+      fields: [
+        ['pyeongMoji', '평년결과모지수 (개/포기)', 7],
+        ['aliveSum', '표본구간 살아있는 결과모지수 합계 (개)', 250],
+        ['sectionCount', '표본구간수 (구간당 5포기)', 10],
+        ['badFruit', '수정불량 결실수 (개)', 200],
+        ['totFruit', '전체 결실수 (개)', 400],
+        ['uncompRate', '미보상비율 (%)', 20],
+        ['insured', '보험가입금액 (원)', 5000000],
+        ['deduct', '자기부담비율 (%)', 20]
+      ],
+      solve: v => {
+        const alive = v.aliveSum / (v.sectionCount * 5);
+        const badCoeff = Math.max(0, (v.badFruit / v.totFruit) - 0.15);
+        const badMoji = alive * badCoeff;
+        const uncompMoji = Math.max(0, (v.pyeongMoji - (alive - badMoji)) * (v.uncompRate / 100));
+        const deadMoji = v.pyeongMoji - (alive - badMoji) - uncompMoji;
+        const ratePct = Math.round((deadMoji / v.pyeongMoji) * 10000) / 100;
+        const pay = v.insured * Math.max(0, ratePct / 100 - v.deduct / 100);
+        return [
+          { q: '1단계: 포기당 기준 살아있는 결과모지수(개)는 얼마인가요?', a: alive, ex: `${v.aliveSum} ÷ (${v.sectionCount} × 5) = ${fmt(alive)} 개`, hint: '표본구간 합계 ÷ (표본구간수 × 5)' },
+          { q: '2단계: 수정불량환산 고사결과모지수(개)는 얼마인가요?', a: badMoji, ex: `${fmt(alive)} × max(0, ${v.badFruit}/${v.totFruit} − 0.15) = ${fmt(badMoji)} 개`, hint: '살아있는 결과모지수 × (수정불량률 − 자연수정불량률 15%)' },
+          { q: '3단계: 최종 고사결과모지수(개)는 얼마인가요?', a: deadMoji, ex: `${v.pyeongMoji} − (${fmt(alive)} − ${fmt(badMoji)}) − ${fmt(uncompMoji)} = ${fmt(deadMoji)} 개`, hint: '평년 − (살아있는 − 수정불량환산) − 미보상고사결과모지수' },
+          { q: '4단계: 과실손해보험금(원)은 얼마인가요? (피해율 소수점 셋째자리 반올림)', a: pay, ex: `피해율 ${ratePct}% → ${fmt(v.insured)} × (${ratePct}% − ${v.deduct}%) = ${fmt(pay)} 원`, hint: '보험가입금액 × (피해율 − 자기부담비율)' }
+        ];
+      }
+    },
+
+    fig: {
+      desc: '🍈 [수확전 종합위험 - 무화과] 총 피해율 = 수확전(~7/31) 피해율 + 수확후(8/1~) 피해율. 수확후 피해율 = (1 − 수확전피해율) × 잔여수확량비율 × 결과지피해율. [잔여수확량비율: 8월 100−1.06×일, 9월 67−1.13×일, 10월 33−0.84×일]',
+      fields: [
+        ['preRate', '수확전(~7/31) 기사고 피해율 (%)', 41.06],
+        ['month', '수확후 기준일자 월 (8, 9, 10 중 입력)', 8],
+        ['day', '수확후 기준일자 일 (1~31)', 20],
+        ['deadBranch', '고사결과지수 (보상+미보상 합계, 개)', 5],
+        ['aliveBranch', '미고사(정상)결과지수 (개)', 20],
+        ['fruitRate', '착과피해율 (%)', 30],
+        ['uncompBranch', '미보상 고사결과지수 (개)', 2],
+        ['insured', '보험가입금액 (원)', 10000000],
+        ['deduct', '자기부담비율 (%)', 20]
+      ],
+      solve: v => {
+        let remRatio = 0;
+        if (v.month === 8) remRatio = 100 - (1.06 * v.day);
+        else if (v.month === 9) remRatio = (100 - 33) - (1.13 * v.day);
+        else remRatio = (100 - 67) - (0.84 * v.day);
+        const branchRate = (v.deadBranch + v.aliveBranch * (v.fruitRate / 100) - v.uncompBranch) / (v.deadBranch + v.aliveBranch);
+        const postRate = (1 - v.preRate / 100) * (remRatio / 100) * branchRate * 100;
+        const postRateRound = Math.round(postRate * 100) / 100;
+        const totRate = v.preRate + postRateRound;
+        const pay = v.insured * Math.max(0, totRate / 100 - v.deduct / 100);
+        return [
+          { q: '1단계: 잔여수확량비율(%)은 얼마인가요?', a: remRatio, ex: `${v.month}월 ${v.day}일 기준 → ${fmt(remRatio)}%`, hint: '8월: 100−1.06×일 / 9월: 67−1.13×일 / 10월: 33−0.84×일' },
+          { q: '2단계: 결과지피해율(%)은 얼마인가요?', a: branchRate * 100, ex: `(${v.deadBranch} + ${v.aliveBranch}×${v.fruitRate}% − ${v.uncompBranch}) ÷ ${v.deadBranch + v.aliveBranch} = ${fmt(branchRate * 100)}%`, hint: '{고사결과지수 + (미고사×착과피해율) − 미보상고사} ÷ 기준결과지수' },
+          { q: '3단계: 수확후 피해율(%)은 얼마인가요? (소수점 셋째자리 반올림)', a: postRateRound, ex: `(1 − ${v.preRate}%) × ${fmt(remRatio)}% × ${fmt(branchRate * 100)}% = ${postRateRound}%`, hint: '(1 − 수확전피해율) × 잔여수확량비율 × 결과지피해율' },
+          { q: '4단계: 최종 지급보험금(원)은 얼마인가요?', a: pay, ex: `${fmt(v.insured)} × (${fmt(totRate)}% − ${v.deduct}%) = ${fmt(pay)} 원`, hint: '보험가입금액 × (수확전피해율 + 수확후피해율 − 자기부담비율)' }
+        ];
+      }
+    },
+
+    rice: {
+      desc: '🌾 [논작물 - 벼] ① 재이앙·재직파보험금(면적피해율 > 10%): 가입금액 × 25% × 면적피해율. ② 경작불능보험금(식물체피해율 ≥ 65%): 가입금액 × 일정비율(자기부담 10%:45%, 15%:42%, 20%:40%, 30%:35%, 40%:30%). ③ 수확불능보험금: 경작불능 비율 + 15%.',
+      fields: [
+        ['insured', '보험가입금액 (원)', 3500000],
+        ['area', '보험가입면적 (㎡)', 7000],
+        ['replantArea', '재이앙 전 피해면적 (㎡)', 2100],
+        ['deadArea', '재이앙 후 고사 식물체 피해면적 (㎡)', 4900],
+        ['deduct', '자기부담비율 (10, 15, 20, 30, 40%)', 15]
+      ],
+      solve: v => {
+        const rateMap = { 10: 0.45, 15: 0.42, 20: 0.40, 30: 0.35, 40: 0.30 };
+        const fixedRatio = rateMap[v.deduct] ?? 0.40;
+        const areaRate = v.replantArea / v.area;
+        const replantPay = areaRate > 0.1 ? v.insured * 0.25 * areaRate : 0;
+        const plantRate = v.deadArea / v.area;
+        const unablePay = plantRate >= 0.65 ? v.insured * fixedRatio : 0;
+        return [
+          { q: '1단계: 재이앙 전 면적피해율(%)은 얼마인가요?', a: areaRate * 100, ex: `${fmt(v.replantArea)} ÷ ${fmt(v.area)} = ${fmt(areaRate * 100)}%`, hint: '피해면적 ÷ 보험가입면적 × 100' },
+          { q: '2단계: 재이앙·재직파 보험금(원)은 얼마인가요?', a: replantPay, ex: `${fmt(v.insured)} × 25% × ${fmt(areaRate * 100)}% = ${fmt(replantPay)} 원`, hint: '면적피해율 10% 초과 시: 가입금액 × 25% × 면적피해율' },
+          { q: '3단계: 경작불능 보험금(원)은 얼마인가요?', a: unablePay, ex: `식물체피해율 ${fmt(plantRate * 100)}% (65% 이상) → ${fmt(v.insured)} × ${fixedRatio * 100}% = ${fmt(unablePay)} 원`, hint: '식물체피해율 65% 이상 시: 가입금액 × 자기부담별 일정비율(15%형은 42%)' }
+        ];
+      }
+    },
+
+    corn: {
+      desc: '🌽 [밭작물 수확감소 - 옥수수] 피해수확량 = 피해주수 × 표준중량 × 재식시기지수 × 재식밀도지수. 손해액 = (피해수확량 − 미보상감수량) × 가입가격. 보험금 = min(보험가입금액, 손해액) − 자기부담금.',
+      fields: [
+        ['damagedTrees', '피해주수 (주)', 2500],
+        ['stdWeight', '개당 표준중량 (kg)', 0.25],
+        ['timeIdx', '재식시기 지수', 1.0],
+        ['densityIdx', '재식밀도 지수', 1.0],
+        ['uncompKg', '미보상감수량 (kg)', 25],
+        ['price', '가입가격 (원/kg)', 2000],
+        ['insured', '보험가입금액 (원)', 2000000],
+        ['deduct', '자기부담비율 (%)', 20]
+      ],
+      solve: v => {
+        const dmgKg = v.damagedTrees * v.stdWeight * v.timeIdx * v.densityIdx;
+        const loss = Math.max(0, dmgKg - v.uncompKg) * v.price;
+        const own = v.insured * (v.deduct / 100);
+        const pay = Math.max(0, Math.min(v.insured, loss) - own);
+        return [
+          { q: '1단계: 산정된 피해수확량(kg)은 얼마인가요?', a: dmgKg, ex: `${fmt(v.damagedTrees)} × ${v.stdWeight} × ${v.timeIdx} × ${v.densityIdx} = ${fmt(dmgKg)} kg`, hint: '피해주수 × 표준중량 × 재식시기지수 × 재식밀도지수' },
+          { q: '2단계: 손해액(원)은 얼마인가요?', a: loss, ex: `(${fmt(dmgKg)} − ${fmt(v.uncompKg)}) × ${fmt(v.price)}원 = ${fmt(loss)} 원`, hint: '(피해수확량 − 미보상감수량) × 가입가격' },
+          { q: '3단계: 최종 지급보험금(원)은 얼마인가요?', a: pay, ex: `min(${fmt(v.insured)}, ${fmt(loss)}) − ${fmt(own)} = ${fmt(pay)} 원`, hint: 'min(보험가입금액, 손해액) − 자기부담금' }
+        ];
+      }
+    },
+
+    chili: {
+      desc: '🌶️ [밭작물 생산비보장 - 고추·브로콜리] 수확기 이전 경과비율 = α + (1 − α) × (생장일수 ÷ 표준생장일수). [준비기생산비계수 α: 풋고추/홍고추 54.2%, 브로콜리 67.1%]. 보험금 = (잔존보험가입금액 × 경과비율 × 피해율 × 병충해인정비율) − 자기부담금(3% 또는 5%).',
+      fields: [
+        ['remInsured', '잔존보험가입금액 (원)', 10000000],
+        ['alpha', '준비기 생산비계수 α (%, 고추 54.2 / 브로콜리 67.1)', 54.2],
+        ['growDays', '생장일수 (정식일~사고일 경과일수, 수확중이면 0)', 35],
+        ['stdGrowDays', '표준생장일수 (풋고추 70 / 홍고추 100 / 브로콜리 130)', 70],
+        ['areaRate', '면적피해율 (%)', 50],
+        ['dmgRate', '평균손해정도비율 (%)', 60],
+        ['uncompRate', '미보상비율 (%)', 0],
+        ['pestRate', '병충해 등급별 인정비율 (%, 자연재해면 100)', 70],
+        ['deduct', '자기부담금 비율 (3 또는 5%)', 3]
+      ],
+      solve: v => {
+        const a = v.alpha / 100;
+        const elapsed = a + (1 - a) * (v.growDays / v.stdGrowDays);
+        const rate = (v.areaRate / 100) * (v.dmgRate / 100) * (1 - v.uncompRate / 100);
+        const gross = v.remInsured * elapsed * rate * (v.pestRate / 100);
+        const own = v.remInsured * (v.deduct / 100);
+        const pay = Math.max(0, gross - own);
+        return [
+          { q: '1단계: 경과비율(%)은 얼마인가요?', a: elapsed * 100, ex: `${v.alpha}% + (1 − ${v.alpha}%) × (${v.growDays} ÷ ${v.stdGrowDays}) = ${fmt(elapsed * 100)}%`, hint: 'α + (1 − α) × (생장일수 ÷ 표준생장일수)' },
+          { q: '2단계: 피해율(%)은 얼마인가요?', a: rate * 100, ex: `${v.areaRate}% × ${v.dmgRate}% × (1 − ${v.uncompRate}%) = ${fmt(rate * 100)}%`, hint: '면적피해율 × 평균손해정도비율 × (1 − 미보상비율)' },
+          { q: '3단계: 생산비보장보험금(원)은 얼마인가요?', a: pay, ex: `(${fmt(v.remInsured)} × ${fmt(elapsed * 100)}% × ${fmt(rate * 100)}% × ${v.pestRate}%) − ${fmt(own)} = ${fmt(pay)} 원`, hint: '(잔존가입금액 × 경과비율 × 피해율 × 병충해인정비율) − 자기부담금' }
+        ];
+      }
+    },
+
+    revenue: {
+      desc: '💰 [농업수입감소보장] ① 실수입형(마늘·양파 등): 기준수입=평년×기준가, 실제수입=(수확량+미보상)×min(기준가,수확기가). ② 과거수입형(콩·포도·고구마·감자·양배추): 실제수입=(수확량+미보상)×수확기가. ③ 기대수입형(보리·옥수수 등): 기준수입=평년×max(기준가,수확기가), 보험금=기준수입×(피해율−자기부담).',
+      fields: [
+        ['mode', '보장형태 (1:실수입/과거수입형, 2:기대수입형)', 1],
+        ['insured', '보험가입금액 (원)', 24160000],
+        ['pyeong', '평년수확량 (kg)', 10000],
+        ['basePrice', '기준가격 (원/kg)', 4028],
+        ['harvPrice', '수확기가격 (원/kg)', 4294],
+        ['harvest', '조사 수확량 (kg)', 6500],
+        ['uncompKg', '미보상감수량 (kg)', 200],
+        ['deduct', '자기부담비율 (%)', 20]
+      ],
+      solve: v => {
+        const stdRev = v.mode === 2 ? v.pyeong * Math.max(v.basePrice, v.harvPrice) : v.pyeong * v.basePrice;
+        const applyPrice = v.mode === 1 ? Math.min(v.basePrice, v.harvPrice) : v.harvPrice;
+        const actRev = (v.harvest + v.uncompKg) * applyPrice;
+        const rate = Math.max(0, (stdRev - actRev) / stdRev);
+        const rateFloor = Math.floor(rate * 10000) / 100; // 소수점 둘째자리 미만 절사(%)
+        const basePay = v.mode === 2 ? stdRev : v.insured;
+        const pay = basePay * Math.max(0, rateFloor / 100 - v.deduct / 100);
+        return [
+          { q: '1단계: 기준수입(원)은 얼마인가요?', a: stdRev, ex: `${fmt(v.pyeong)}kg × ${fmt(v.mode === 2 ? Math.max(v.basePrice, v.harvPrice) : v.basePrice)}원 = ${fmt(stdRev)} 원`, hint: '평년수확량 × 기준가격 (기대수입형은 max(기준가격, 수확기가격))' },
+          { q: '2단계: 실제수입(원)은 얼마인가요?', a: actRev, ex: `(${fmt(v.harvest)} + ${fmt(v.uncompKg)}) × ${fmt(applyPrice)}원 = ${fmt(actRev)} 원`, hint: '(수확량 + 미보상감수량) × min(기준가격, 수확기가격)' },
+          { q: '3단계: 수입감소 피해율(%)은 얼마인가요? (소수점 둘째자리 미만 절사)', a: rateFloor, ex: `(${fmt(stdRev)} − ${fmt(actRev)}) ÷ ${fmt(stdRev)} = ${rateFloor}%`, hint: '(기준수입 − 실제수입) ÷ 기준수입 × 100' },
+          { q: '4단계: 농업수입감소보장 보험금(원)은 얼마인가요?', a: pay, ex: `${fmt(basePay)} × (${rateFloor}% − ${v.deduct}%) = ${fmt(pay)} 원`, hint: '보험가입금액(기대수입형은 기준수입) × (피해율 − 자기부담비율)' }
+        ];
+      }
+    },
+
+    ginseng_fac: {
+      desc: '🌿 [인삼 해가림시설 가입금액 및 보험금] 재조달가액 = 면적 × 단위면적당 시설비. 감가상각률 = 경과년수(1년 미만 절사) × 경년감가율(목재 13.33%, 철재 4.44%). 보험가입금액 = 재조달가액 × (1 − 감가상각률). 일부보험 시 비례보상 적용.',
+      fields: [
+        ['area', '재배면적 (㎡)', 3000],
+        ['unitCost', '단위면적당 시설비 (원/㎡)', 6000],
+        ['years', '경과년수 (년, 1년 미만 버림)', 5],
+        ['depRate', '경년감가율 (%, 목재 13.33 / 철재 4.44)', 13.33],
+        ['damage', '사고 손해액 (원, 가입금액만 계산시 0)', 2000000],
+        ['insurValue', '사고 시 보험가액 (원, 가입금액과 같으면 동일 입력)', 6003000]
+      ],
+      solve: v => {
+        const replaceCost = v.area * v.unitCost;
+        const sumInsured = replaceCost * (1 - (v.years * v.depRate) / 100);
+        const own = Math.min(1000000, Math.max(100000, v.damage * 0.1));
+        const netDmg = Math.max(0, v.damage - own);
+        const pay = v.damage === 0 ? 0 : (sumInsured >= v.insurValue ? Math.min(netDmg, sumInsured, v.insurValue) : netDmg * (sumInsured / v.insurValue));
+        return [
+          { q: '1단계: 해가림시설 재조달가액(원)은 얼마인가요?', a: replaceCost, ex: `${fmt(v.area)}㎡ × ${fmt(v.unitCost)}원 = ${fmt(replaceCost)} 원`, hint: '재배면적 × 단위면적당 시설비' },
+          { q: '2단계: 해가림시설 보험가입금액(원)은 얼마인가요?', a: sumInsured, ex: `${fmt(replaceCost)} × (1 − ${v.years} × ${v.depRate}%) = ${fmt(sumInsured)} 원`, hint: '재조달가액 × (1 − 경과년수 × 경년감가율)' },
+          { q: '3단계: 해가림시설 지급보험금(원)은 얼마인가요? (손해액 0이면 0)', a: pay, ex: `자기부담금 ${fmt(own)}원 차감 후 = ${fmt(pay)} 원`, hint: '(손해액 − 자기부담금) × min(1, 보험가입금액 ÷ 보험가액)' }
+        ];
+      }
+    },
+
+    std_yield: {
+      desc: '📊 [공통 계약인수 - 평년착과량·평년수확량 산정] 산식: [A + (B − A) × (1 − Y/5)] × (C ÷ D). (과수·밭작물은 D=B 적용). 사고 시 과거수확량 = max(평년×50%, 조사수확량), 무사고 시 = max(표준수확량, 평년수확량) × 1.1.',
+      fields: [
+        ['A', 'A: 과거 평균수확량(적과후착과량) (kg)', 2500],
+        ['B', 'B: 과거 평균표준수확량 (kg)', 4200],
+        ['Y', 'Y: 과거 5년간 보험가입횟수 (회)', 4],
+        ['C', 'C: 가입연도(당해연도) 기준표준수확량 (kg)', 9000],
+        ['D', 'D: 과거 평균기준표준수확량 (일반 품목은 B와 동일값 입력)', 6000]
+      ],
+      solve: v => {
+        const res = (v.A + (v.B - v.A) * (1 - v.Y / 5)) * (v.C / v.D);
+        return [
+          { q: '1단계: 가중평균 기본수확량 [A + (B − A) × (1 − Y/5)] (kg)은 얼마인가요?', a: v.A + (v.B - v.A) * (1 - v.Y / 5), ex: `${fmt(v.A)} + (${fmt(v.B)} − ${fmt(v.A)}) × (1 − ${v.Y}/5) = ${fmt(v.A + (v.B - v.A) * (1 - v.Y / 5))} kg`, hint: 'A + (B − A) × (1 − Y ÷ 5)' },
+          { q: '2단계: 최종 당해연도 평년착과량(평년수확량) (kg)은 얼마인가요?', a: res, ex: `[${fmt(v.A)} + (${fmt(v.B)} − ${fmt(v.A)}) × (1 − ${v.Y}/5)] × (${fmt(v.C)} ÷ ${fmt(v.D)}) = ${fmt(res)} kg`, hint: '1단계 값 × (C ÷ D)' }
+        ];
+      }
+    }
+  };
+
+
+const dialog = document.getElementById("case-calculator");
+const form = document.getElementById("case-form");
+const fields = document.getElementById("case-fields");
+const error = document.getElementById("case-error");
+const results = document.getElementById("results");
+const output = document.getElementById("case-output");
+const compute = document.getElementById("compute-case");
+let active;
+for (const button of document.querySelectorAll("[data-case]")) {
+  button.addEventListener("click", () => {
+    active = configs[button.dataset.case];
+    document.getElementById("case-title").textContent = button.closest(".card").querySelector(".label").textContent + " 계산기";
+    document.getElementById("case-description").textContent = active.desc;
+    output.hidden = true;
+    results.replaceChildren();
+    error.textContent = "";
+    const unitsByField = {
+      sectionCount: "구간", month: "월", day: "일", deadBranch: "개",
+      timeIdx: "단위 없음", densityIdx: "단위 없음", growDays: "일",
+      stdGrowDays: "일", mode: "선택 번호", D: "kg"
+    };
+    fields.replaceChildren(...active.fields.map(([key, label, value]) => {
+      const field = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "number";
+      input.name = key;
+      input.min = "0";
+      input.step = "any";
+      input.required = true;
+      input.value = value;
+      const name = document.createElement("span");
+      name.className = "field-name";
+      const detail = label.match(/\s+\(([^()]*)\)$/u);
+      name.textContent = detail ? label.slice(0, detail.index) : label;
+      const unit = document.createElement("span");
+      unit.className = "field-unit";
+      const note = detail?.[1] ?? "";
+      const explicitUnit = note.match(/개\/포기|원\/kg|원\/㎡|kg|㎡|%|개|주|회|년|원/u)?.[0];
+      const displayUnit = unitsByField[key] ?? explicitUnit;
+      unit.textContent = [displayUnit, note === displayUnit ? "" : note].filter(Boolean).join(" · ");
+      field.append(name, unit, input);
+      return field;
+    }));
+    dialog.showModal();
+  });
+}
+dialog.querySelector(".close").onclick = () => dialog.close();
+function calculate() {
+  output.hidden = true;
+  error.textContent = "";
+  const inputs = [...fields.querySelectorAll("input")];
+  if (!inputs.every(input => input.reportValidity())) return;
+  const values = Object.fromEntries(inputs.map(input => [input.name, input.valueAsNumber]));
+  const steps = active.solve(values);
+  results.replaceChildren();
+  error.textContent = "";
+  if (steps.some(step => !Number.isFinite(step.a))) {
+    error.textContent = "계산할 수 없는 값이 있어요. 계산식에서 나누는 수가 0인지 확인해 주세요.";
+    error.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  results.replaceChildren(...steps.map((step, index) => {
+    const item = document.createElement("li");
+    item.textContent = step.ex;
+    if (index === steps.length - 1) {
+      item.className = "final-step";
+      const title = document.createElement("strong");
+      title.textContent = "최종 결과";
+      item.prepend(title);
+    }
+    return item;
+  }));
+  output.hidden = false;
+  output.scrollIntoView({ block: "nearest" });
+}
+const articleButtons = [...document.querySelectorAll("[data-case]")];
+const linkedArticle = new URLSearchParams(window.location.search).get("case");
+const linkedButton = articleButtons.find(button => {
+  const label = button.closest(".card").querySelector(".label").textContent;
+  return label.split(" · ")[0] === linkedArticle;
+});
+if (linkedButton) linkedButton.click();
+compute.addEventListener("click", calculate);
+form.addEventListener("keydown", event => {
+  if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
+    event.preventDefault();
+    calculate();
+  }
+});
+</script>
+</body>
+</html>
